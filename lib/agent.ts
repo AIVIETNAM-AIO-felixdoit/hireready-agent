@@ -151,30 +151,51 @@ export async function runAgent(input: AgentInput, emit: (e: AgentEvent) => void)
   };
   const context = `ORIGINAL CV:\n${input.cv}\n\nJOB:\n${JSON.stringify(job)}\n\nGAP ANALYSIS:\n${JSON.stringify(gap)}`;
 
-  step("draft", "Writing a tailored CV", "running");
-  let draft = stripFences(await chatText([writerSystem, { role: "user", content: context }], opts));
-  step("draft", "Writing a tailored CV", "done", `${draft.split(/\s+/).length} words`);
-
-  let critique: Critique | null = null;
-  for (let round = 1; round <= MAX_REVISIONS + 1; round++) {
-    const id = `critic-${round}`;
-    step(id, `Critic agent reviewing draft #${round}`, "running");
-    critique = await chatJson<Critique>(
+  // The critic uses one rubric for every CV, so the original and tailored scores are comparable.
+  const critic = async (cvText: string) => {
+    const c = await chatJson<Critique>(
       [
         {
           role: "system",
           content:
-            "You are a strict ATS screener and fact-checker. Evaluate the TAILORED CV against the JOB, and check it against the ORIGINAL CV for fabrication. Respond with JSON: " +
+            "You are a strict ATS screener and fact-checker. Score the CANDIDATE CV for this JOB, and check it against the ORIGINAL CV for fabrication. Respond with JSON: " +
             '{"score":number 0-100,"verdict":string,"issues":string[],"fabrication_flags":string[],"missing_keywords":string[]}. ' +
-            "fabrication_flags = any claim in the tailored CV not supported by the original CV (placeholders like [X%] are fine). " +
-            "missing_keywords = job keywords the candidate truly has evidence for but the tailored CV does not mention. " +
+            "score rubric: keyword/skill coverage of must-haves (40), relevance and impact of experience bullets to the responsibilities (30), " +
+            "targeted summary and structure (15), clarity and concision (15). Do not reward claims that are not supported by the original CV. " +
+            "fabrication_flags = any claim in the candidate CV not supported by the original CV (placeholders like [X%] are fine). " +
+            "missing_keywords = job keywords the candidate truly has evidence for but the candidate CV does not mention. " +
             `issues = concrete fixes. Write text values in ${lang}.`,
         },
-        { role: "user", content: `JOB:\n${JSON.stringify(job)}\n\nORIGINAL CV:\n${input.cv}\n\nTAILORED CV:\n${draft}` },
+        { role: "user", content: `JOB:\n${JSON.stringify(job)}\n\nORIGINAL CV:\n${input.cv}\n\nCANDIDATE CV:\n${cvText}` },
       ],
       opts,
     );
-    critique.score = clampScore(critique.score);
+    c.score = clampScore(c.score);
+    c.fabrication_flags = Array.isArray(c.fabrication_flags) ? c.fabrication_flags : [];
+    return c;
+  };
+
+  step("draft", "Writing a tailored CV + scoring the original", "running");
+  const [firstDraft, baseline] = await Promise.all([
+    chatText([writerSystem, { role: "user", content: context }], opts).then(stripFences),
+    critic(input.cv),
+  ]);
+  let draft = firstDraft;
+  emit({ type: "result", key: "baseline", data: { score: baseline.score } });
+  step(
+    "draft",
+    "Writing a tailored CV + scoring the original",
+    "done",
+    `${draft.split(/\s+/).length} words · original CV scores ${baseline.score}/100`,
+  );
+
+  let critique: Critique | null = null;
+  // Keep the best draft seen so far: no fabrication beats any score, then highest score.
+  let best = { draft, score: -1, flags: Infinity, round: 0 };
+  for (let round = 1; round <= MAX_REVISIONS + 1; round++) {
+    const id = `critic-${round}`;
+    step(id, `Critic agent reviewing draft #${round}`, "running");
+    critique = await critic(draft);
     const flags = critique.fabrication_flags?.length ?? 0;
     const pass = critique.score >= TARGET_SCORE && flags === 0;
     step(
@@ -184,6 +205,9 @@ export async function runAgent(input: AgentInput, emit: (e: AgentEvent) => void)
       `Score ${critique.score}/100 · ${flags} fabrication flag(s) · ${pass ? "approved ✓" : "needs revision"}`,
     );
     emit({ type: "result", key: "critique", data: { ...critique, round } });
+    if (flags < best.flags || (flags === best.flags && critique.score > best.score)) {
+      best = { draft, score: critique.score, flags, round };
+    }
     if (pass || round > MAX_REVISIONS) break;
 
     const rid = `revise-${round}`;
@@ -197,7 +221,8 @@ export async function runAgent(input: AgentInput, emit: (e: AgentEvent) => void)
           {
             role: "user",
             content:
-              "A reviewer found these problems. Fix all of them and return the full revised Markdown CV only.\n" +
+              "A reviewer found these problems. Fix them with MINIMAL edits: keep every truthful keyword, bullet and section that is not flagged. " +
+              "Return the full revised Markdown CV only.\n" +
               `FABRICATION (remove or rephrase to match the original CV): ${JSON.stringify(critique.fabrication_flags)}\n` +
               `ISSUES: ${JSON.stringify(critique.issues)}\n` +
               `KEYWORDS TO ADD (only where truthful): ${JSON.stringify(critique.missing_keywords)}`,
@@ -208,6 +233,11 @@ export async function runAgent(input: AgentInput, emit: (e: AgentEvent) => void)
     );
     step(rid, `Revising CV based on critic feedback`, "done");
   }
+  if (best.draft !== draft) {
+    step("select", "Selecting the best draft", "done", `Kept draft #${best.round} (score ${best.score}, ${best.flags} flag(s))`);
+  }
+  draft = best.draft;
+  emit({ type: "result", key: "best", data: { round: best.round, score: best.score, flags: best.flags } });
   emit({ type: "result", key: "cv", data: draft });
 
   // ---------- 5. Cover letter + interview prep ----------

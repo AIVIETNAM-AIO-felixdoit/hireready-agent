@@ -18,6 +18,9 @@ async function chat(messages: Msg[], opts: { json?: boolean; model?: string; api
     temperature: 0.4,
   };
   if (opts.json) body.response_format = { type: "json_object" };
+  // Thinking models (e.g. NVIDIA Nemotron) are ~7x slower with reasoning on; this workflow
+  // doesn't need it. Set OPENROUTER_REASONING=on to re-enable.
+  if (process.env.OPENROUTER_REASONING !== "on") body.reasoning = { enabled: false };
 
   let lastErr: unknown;
   for (let attempt = 0; attempt < 3; attempt++) {

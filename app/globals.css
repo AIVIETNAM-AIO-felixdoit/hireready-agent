@@ -140,3 +140,4 @@ footer { margin-top: 48px; color: var(--muted); font-size: 13px; text-align: cen
   main { padding: 24px 16px 40px; }
   .controls .primary { margin-left: 0; width: 100%; }
 }
+.pill.best { background: color-mix(in srgb, var(--ok) 18%, transparent); font-weight: 600; }

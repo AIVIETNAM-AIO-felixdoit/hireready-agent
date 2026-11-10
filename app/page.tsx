@@ -28,6 +28,8 @@ export default function Home() {
   const [tailored, setTailored] = useState("");
   const [letter, setLetter] = useState("");
   const [prep, setPrep] = useState<InterviewPrep | null>(null);
+  const [best, setBest] = useState<{ round: number; score: number } | null>(null);
+  const [baseline, setBaseline] = useState<number | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -50,7 +52,7 @@ export default function Home() {
     } catch {}
   }, [language, model, apiKey]);
 
-  const finalScore = critiques.length ? critiques[critiques.length - 1].score : null;
+  const finalScore = best ? best.score : null;
 
   async function run() {
     setError("");
@@ -61,6 +63,8 @@ export default function Home() {
     setTailored("");
     setLetter("");
     setPrep(null);
+    setBest(null);
+    setBaseline(null);
     setTab("overview");
     setRunning(true);
     setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
@@ -112,6 +116,8 @@ export default function Home() {
       if (e.key === "critique") setCritiques((c) => [...c, e.data as Critique & { round: number }]);
       if (e.key === "cv") setTailored(e.data as string);
       if (e.key === "letter") setLetter(e.data as string);
+      if (e.key === "baseline") setBaseline((e.data as { score: number }).score);
+      if (e.key === "best") setBest(e.data as { round: number; score: number });
       if (e.key === "prep") setPrep(e.data as InterviewPrep);
     } else if (e.type === "error") {
       setError(e.message);
@@ -239,7 +245,7 @@ export default function Home() {
             </nav>
 
             {tab === "overview" && (
-              <Overview job={job} gap={gap} critiques={critiques} finalScore={finalScore} />
+              <Overview job={job} gap={gap} critiques={critiques} finalScore={finalScore} baseline={baseline} bestRound={best?.round ?? null} />
             )}
             {tab === "cv" && <Doc md={tailored} name="tailored-cv.md" pending={running} />}
             {tab === "letter" && <Doc md={letter} name="cover-letter.md" pending={running} />}
@@ -260,14 +266,18 @@ function Overview({
   gap,
   critiques,
   finalScore,
+  baseline,
+  bestRound,
 }: {
   job: JobProfile | null;
   gap: GapAnalysis | null;
   critiques: (Critique & { round: number })[];
   finalScore: number | null;
+  bestRound: number | null;
+  baseline: number | null;
 }) {
   if (!gap) return <Waiting text="Analyzing the match…" />;
-  const last = critiques[critiques.length - 1];
+  const last = critiques.find((c) => c.round === bestRound) ?? critiques[critiques.length - 1];
   return (
     <div className="overview">
       {job && (
@@ -276,7 +286,7 @@ function Overview({
         </p>
       )}
       <div className="scores">
-        <Score label="Original CV" value={gap.score} />
+        <Score label="Original CV" value={baseline} />
         <span className="arrow">→</span>
         <Score label="Tailored CV" value={finalScore} />
       </div>
@@ -285,9 +295,10 @@ function Overview({
       {critiques.length > 0 && (
         <div className="rounds">
           {critiques.map((c) => (
-            <span key={c.round} className="pill">
+            <span key={c.round} className={`pill${c.round === bestRound ? " best" : ""}`}>
               Draft #{c.round}: {c.score}
               {c.fabrication_flags?.length ? ` · ${c.fabrication_flags.length} flag(s)` : ""}
+              {c.round === bestRound ? " · selected ✓" : ""}
             </span>
           ))}
           {last && <p className="muted">Critic: {last.verdict}</p>}

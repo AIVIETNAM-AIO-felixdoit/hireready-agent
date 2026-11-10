@@ -1,4 +1,5 @@
 import { runAgent, type AgentEvent } from "@/lib/agent";
+import { serverInfo } from "@/lib/llm";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -43,5 +44,5 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  return Response.json({ ok: true, serverKey: Boolean(process.env.OPENROUTER_API_KEY), model: process.env.OPENROUTER_MODEL || "google/gemini-2.5-flash" });
+  return Response.json({ ok: true, ...serverInfo() });
 }

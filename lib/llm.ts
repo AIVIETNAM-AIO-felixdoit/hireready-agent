@@ -1,34 +1,52 @@
-// Thin OpenRouter client (OpenAI-compatible chat completions API).
+// Thin client for any OpenAI-compatible chat completions API.
+// Server provider: LLM_BASE_URL + LLM_API_KEY + LLM_MODEL (e.g. Meta Llama API) if set,
+// otherwise OpenRouter. A key pasted by the user in Settings is always an OpenRouter key.
 
 export type Msg = { role: "system" | "user" | "assistant"; content: string };
 
-const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
+const OPENROUTER = "https://openrouter.ai/api/v1";
 
-export function getModel(override?: string) {
-  return override || process.env.OPENROUTER_MODEL || "google/gemini-2.5-flash";
+type Provider = { base: string; key?: string; model: string; openrouter: boolean };
+
+function provider(userKey?: string, userModel?: string): Provider {
+  if (!userKey && process.env.LLM_BASE_URL && process.env.LLM_API_KEY) {
+    return {
+      base: process.env.LLM_BASE_URL.replace(/\/+$/, ""),
+      key: process.env.LLM_API_KEY,
+      model: process.env.LLM_MODEL || "Llama-4-Maverick-17B-128E-Instruct-FP8",
+      openrouter: false,
+    };
+  }
+  return {
+    base: OPENROUTER,
+    key: userKey || process.env.OPENROUTER_API_KEY,
+    model: userModel || process.env.OPENROUTER_MODEL || "google/gemini-2.5-flash",
+    openrouter: true,
+  };
+}
+
+export function serverInfo() {
+  const p = provider();
+  return { serverKey: Boolean(p.key), model: p.model, provider: p.openrouter ? "openrouter" : new URL(p.base).host };
 }
 
 async function chat(messages: Msg[], opts: { json?: boolean; model?: string; apiKey?: string } = {}) {
-  const apiKey = opts.apiKey || process.env.OPENROUTER_API_KEY;
-  if (!apiKey) throw new Error("Missing OpenRouter API key. Set OPENROUTER_API_KEY or paste a key in Settings.");
+  const p = provider(opts.apiKey, opts.model);
+  if (!p.key) throw new Error("Missing API key. Configure the server key or paste an OpenRouter key in Settings.");
 
-  const body: Record<string, unknown> = {
-    model: getModel(opts.model),
-    messages,
-    temperature: 0.4,
-  };
+  const body: Record<string, unknown> = { model: p.model, messages, temperature: 0.4 };
   if (opts.json) body.response_format = { type: "json_object" };
   // Thinking models (e.g. NVIDIA Nemotron) are ~7x slower with reasoning on; this workflow
   // doesn't need it. Set OPENROUTER_REASONING=on to re-enable.
-  if (process.env.OPENROUTER_REASONING !== "on") body.reasoning = { enabled: false };
+  if (p.openrouter && process.env.OPENROUTER_REASONING !== "on") body.reasoning = { enabled: false };
 
   let lastErr: unknown;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const res = await fetch(ENDPOINT, {
+      const res = await fetch(`${p.base}/chat/completions`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${p.key}`,
           "Content-Type": "application/json",
           "HTTP-Referer": "https://github.com/hireready-agent",
           "X-Title": "HireReady Agent",
@@ -37,11 +55,18 @@ async function chat(messages: Msg[], opts: { json?: boolean; model?: string; api
       });
       if (!res.ok) {
         const text = await res.text();
-        // Don't retry auth / bad request errors
-        if (res.status === 401 || res.status === 400 || res.status === 402) {
-          throw Object.assign(new Error(`OpenRouter ${res.status}: ${text.slice(0, 300)}`), { fatal: true });
+        const name = p.openrouter ? "OpenRouter" : new URL(p.base).host;
+        // Some providers reject json_object mode: drop it and rely on parseJson instead.
+        if ((res.status === 400 || res.status === 422) && body.response_format) {
+          delete body.response_format;
+          attempt--;
+          continue;
         }
-        throw new Error(`OpenRouter ${res.status}: ${text.slice(0, 300)}`);
+        // Don't retry auth / bad request errors
+        if (res.status === 401 || res.status === 400 || res.status === 402 || res.status === 403) {
+          throw Object.assign(new Error(`${name} ${res.status}: ${text.slice(0, 300)}`), { fatal: true });
+        }
+        throw new Error(`${name} ${res.status}: ${text.slice(0, 300)}`);
       }
       const data = await res.json();
       const content: string | undefined = data?.choices?.[0]?.message?.content;

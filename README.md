@@ -38,7 +38,9 @@ The demo deployment uses the **Meta Model API** with `muse-spark-1.3`. A full ag
 
 ## Deploy
 
-Push the repo to GitHub, import it in [Vercel](https://vercel.com/new) and add `OPENROUTER_API_KEY`. Nothing else needs configuring.
+**Live demo:** https://hireready-agent.vercel.app/
+
+Push the repo to GitHub, import it in [Vercel](https://vercel.com/new) and add the env vars above. Nothing else needs configuring.
 
 ## Stack
 

@@ -37,6 +37,6 @@ Output in English, Vietnamese or Bangla. You can copy, download or print to PDF.
 Students, fresh graduates and early-career professionals in Bangladesh and beyond who apply to many jobs and need each application to stand out.
 
 ## Try it
-- Live demo: *(Vercel URL)*
-- Repo: *(GitHub URL)*
-- Click **Load sample**, then **Run agent**. A full run takes about 30–90 seconds depending on the model.
+- Live demo: https://hireready-agent.vercel.app/
+- Repo: https://github.com/AIVIETNAM-AIO-felixdoit/hireready-agent
+- Click **Load sample**, then **Run agent**. A full run takes about 1–1.5 minutes.

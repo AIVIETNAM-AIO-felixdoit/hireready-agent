@@ -2,6 +2,8 @@
 
 An AI agent that tailors your CV to a specific job, **fact-checks its own output**, and gets you ready for the interview.
 
+**Live demo:** https://hireready-agent.vercel.app/ · **Video:** https://youtu.be/LZQsHbsydGY
+
 Paste a job post and your CV. The agent runs a multi-step workflow you can watch live:
 
 1. **Parse**: extracts the job's must-haves, ATS keywords and responsibilities, and turns your CV into structured data (in parallel).

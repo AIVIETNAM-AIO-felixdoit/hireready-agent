@@ -30,6 +30,11 @@ If no server key is set, users can paste their own OpenRouter key in **Settings*
 | --- | --- | --- |
 | `OPENROUTER_API_KEY` | yes, unless users paste their own | none |
 | `OPENROUTER_MODEL` | no | `google/gemini-2.5-flash` |
+| `LLM_BASE_URL`, `LLM_API_KEY` | no; when set, used instead of OpenRouter for the server key | none (we use `https://api.meta.ai/v1`) |
+| `LLM_MODEL` | no | `muse-spark-1.3` |
+| `LLM_REASONING_EFFORT` | no | not sent (we use `minimal` for speed) |
+
+The demo deployment uses the **Meta Model API** with `muse-spark-1.3`. A full agent run takes about 1 minute.
 
 ## Deploy
 

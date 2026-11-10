@@ -1,5 +1,5 @@
 // Thin client for any OpenAI-compatible chat completions API.
-// Server provider: LLM_BASE_URL + LLM_API_KEY + LLM_MODEL (e.g. Meta Llama API) if set,
+// Server provider: LLM_BASE_URL + LLM_API_KEY + LLM_MODEL (e.g. Meta Model API) if set,
 // otherwise OpenRouter. A key pasted by the user in Settings is always an OpenRouter key.
 
 export type Msg = { role: "system" | "user" | "assistant"; content: string };
@@ -13,7 +13,7 @@ function provider(userKey?: string, userModel?: string): Provider {
     return {
       base: process.env.LLM_BASE_URL.replace(/\/+$/, ""),
       key: process.env.LLM_API_KEY,
-      model: process.env.LLM_MODEL || "Llama-4-Maverick-17B-128E-Instruct-FP8",
+      model: process.env.LLM_MODEL || "muse-spark-1.3",
       openrouter: false,
     };
   }
@@ -39,6 +39,8 @@ async function chat(messages: Msg[], opts: { json?: boolean; model?: string; api
   // Thinking models (e.g. NVIDIA Nemotron) are ~7x slower with reasoning on; this workflow
   // doesn't need it. Set OPENROUTER_REASONING=on to re-enable.
   if (p.openrouter && process.env.OPENROUTER_REASONING !== "on") body.reasoning = { enabled: false };
+  // e.g. "minimal" for Meta muse-spark models, which reason by default.
+  if (!p.openrouter && process.env.LLM_REASONING_EFFORT) body.reasoning_effort = process.env.LLM_REASONING_EFFORT;
 
   let lastErr: unknown;
   for (let attempt = 0; attempt < 3; attempt++) {

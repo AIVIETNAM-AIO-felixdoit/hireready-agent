@@ -21,7 +21,7 @@ Output in English, Vietnamese or Bangla. You can copy, download or print to PDF.
 - **Next.js 15 + TypeScript**, deployed on Vercel.
 - The **agent workflow** (`lib/agent.ts`) mixes parallel steps, structured JSON outputs and a **writer ↔ critic feedback loop** with a stopping condition.
 - Agent events are **streamed** to the UI as NDJSON, so users see each step, its timing and its result as it happens.
-- **OpenRouter** for model access, so we can swap models (Gemini, Claude, GPT) with one env var.
+- **Meta Model API** (`muse-spark-1.3`) powers the agents; the client works with any OpenAI-compatible provider (OpenRouter fallback), so models can be swapped with env vars.
 - **Devin** was used during development to *(fill in: e.g. scaffold the project, implement the streaming endpoint, write the UI, fix bugs)*.
 
 ## Challenges

@@ -5,4 +5,4 @@ node_modules
 *.tsbuildinfo
 next-env.d.ts
 .vercel
-demo/*.mp4
+demo/

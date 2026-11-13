@@ -39,5 +39,5 @@ Students, fresh graduates and early-career professionals in Bangladesh and beyon
 ## Try it
 - Live demo: https://hireready-agent.vercel.app/
 - Repo: https://github.com/AIVIETNAM-AIO-felixdoit/hireready-agent
-- Demo video: https://youtu.be/LZQsHbsydGY
+- Demo video: https://youtu.be/bycZieLlX6w
 - Click **Load sample**, then **Run agent**. A full run takes about 1–1.5 minutes.

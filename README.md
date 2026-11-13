@@ -6,7 +6,7 @@
 
 An AI agent that rewrites your CV for a specific job, **fact-checks its own output with a second critic agent**, and gets you ready for the interview.
 
-[**Live demo**](https://hireready-agent.vercel.app/) · [**Demo video**](https://youtu.be/LZQsHbsydGY) · [How it works](#how-it-works) · [Run locally](#run-locally)
+[**Live demo**](https://hireready-agent.vercel.app/) · [**Demo video**](https://youtu.be/bycZieLlX6w) · [How it works](#how-it-works) · [Run locally](#run-locally)
 
 ![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white)
@@ -35,7 +35,7 @@ HireReady tailors the CV in about a minute, and a separate critic agent checks e
 <sub>Live agent trace: the critic scores each draft and flags made-up claims, and the writer revises (shown at 2× speed).</sub>
 </div>
 
-📺 **Full walkthrough with voice-over:** https://youtu.be/LZQsHbsydGY
+📺 **Full walkthrough with voice-over:** https://youtu.be/bycZieLlX6w
 
 ## How it works
 

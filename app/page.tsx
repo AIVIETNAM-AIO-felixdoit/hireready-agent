@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { marked } from "marked";
 import { SAMPLE_CV, SAMPLE_JD } from "@/lib/samples";
+import { extractCvText } from "./extract-cv";
 import type { AgentEvent, Critique, GapAnalysis, InterviewPrep, JobProfile } from "@/lib/agent";
 
 type Step = { id: string; label: string; status: "running" | "done" | "error"; detail?: string; t0: number; t1?: number };
@@ -18,6 +19,7 @@ export default function Home() {
   const [apiKey, setApiKey] = useState("");
   const [serverKey, setServerKey] = useState<boolean | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [readingCv, setReadingCv] = useState(false);
 
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
@@ -127,11 +129,15 @@ export default function Home() {
 
   async function onFile(f: File | undefined) {
     if (!f) return;
-    if (!/\.(txt|md|markdown)$/i.test(f.name)) {
-      setError("Upload a .txt or .md file, or paste the CV text directly (copy from your PDF/Word file).");
-      return;
+    setError("");
+    setReadingCv(true);
+    try {
+      setCv(await extractCvText(f));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setReadingCv(false);
     }
-    setCv(await f.text());
   }
 
   const canRun = !running && jd.trim().length >= 50 && cv.trim().length >= 50 && (serverKey || apiKey);
@@ -162,8 +168,17 @@ export default function Home() {
           <div className="label-row">
             <label htmlFor="cv">Your CV</label>
             <label className="link">
-              Upload .txt/.md
-              <input type="file" accept=".txt,.md,.markdown" hidden onChange={(e) => onFile(e.target.files?.[0])} />
+              {readingCv ? "Reading file…" : "Upload PDF/DOCX/TXT"}
+              <input
+                type="file"
+                accept=".pdf,.docx,.txt,.md,.markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"
+                hidden
+                disabled={readingCv || running}
+                onChange={(e) => {
+                  onFile(e.target.files?.[0]);
+                  e.target.value = "";
+                }}
+              />
             </label>
           </div>
           <textarea id="cv" value={cv} onChange={(e) => setCv(e.target.value)} placeholder="Paste your CV text here…" />
@@ -255,7 +270,7 @@ export default function Home() {
       )}
 
       <footer>
-        Built for the Agentic Hackathon with Devin · Your data is sent only to the model provider for this request and is not stored.
+        Built for the Agentic Hackathon · Your data is sent only to the model provider for this request and is not stored.
       </footer>
     </main>
   );

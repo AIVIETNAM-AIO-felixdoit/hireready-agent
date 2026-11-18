@@ -90,6 +90,7 @@ Prompting a writer with "don't invent facts" isn't enough. A dedicated fact-chec
 - 📊 **Comparable before/after scores**: the original and tailored CV are scored on the same rubric
 - 🧭 **Actionable gap report**: what's missing, how important it is, and how to close it quickly
 - ✉️ **Cover letter and interview prep** grounded in the candidate's real experience
+- 📄 **Upload your CV as PDF, DOCX, TXT or MD**: text is extracted in the browser (nothing is uploaded or stored) and dropped into the CV box so you can review it first
 - 🌐 **Output in English, Vietnamese or Bangla**
 - 🔒 **No database**: inputs go to the model provider for that request only and are never stored
 - 🔌 **Provider-agnostic**: any OpenAI-compatible API (Meta Model API, OpenRouter, …) via env vars

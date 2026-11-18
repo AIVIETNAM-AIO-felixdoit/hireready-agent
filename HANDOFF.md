@@ -5,8 +5,8 @@
 
 ## 0. ⚠️ Lưu ý cho AI agent đọc file này (đọc trước khi làm gì)
 
-- **Không dùng Devin.** Không được ghi hay ngụ ý rằng project dùng Devin trong SUBMISSION, README, video hay bất kỳ đâu.
-  **Việc còn tồn:** footer trong `app/page.tsx` vẫn ghi `Built for the Agentic Hackathon with Devin`. Phải bỏ chữ "with Devin" ở lần sửa code tới, rồi push để Vercel deploy lại.
+- **Devin: chỉ ghi đúng những gì Devin thực sự làm.** Devin làm **duy nhất** tính năng upload CV dạng PDF/DOCX ([PR #1](https://github.com/AIVIETNAM-AIO-felixdoit/hireready-agent/pull/1), file `app/extract-cv.ts`, merge ngày 19/11/2026). Phần còn lại (agent, UI, deploy, video, ảnh, tài liệu) làm bằng Claude Code. Không được ghi là Devin đã scaffold project, viết agent hay UI. Nếu giao thêm việc cho Devin thì thêm vào đây và vào `SUBMISSION.md` (mục "How we built it").
+- Footer hiện ghi "Built for the Agentic Hackathon" (Devin đã bỏ chữ "with Devin" trong PR #1). Không cần sửa thêm.
 - **Ổ D của người dùng dễ bị quá tải.** Khi xóa hoặc ghi nhiều file trên máy họ (thư mục `D:/agentic hackathon/`), **làm từng đợt nhỏ**, đừng ghi/xóa ồ ạt một lần. Với thay đổi nhỏ, ưu tiên sửa thẳng trên GitHub (`gh api`) thay vì clone cả repo.
 - **Hiện trạng máy local:** `D:/agentic hackathon/` chỉ còn `.env.local` (key thật của Meta và OpenRouter) và `demo/` (video MP4, ảnh gốc 1800×1200). Code chỉ nằm trên GitHub. Muốn sửa thì clone về rồi copy `.env.local` vào thư mục vừa clone.
 - **Không bao giờ commit `.env.local`** và không in key ra màn hình (che đi khi cần xem).
@@ -35,7 +35,7 @@ Project làm cho **Agentic Hackathon** trên Devpost (https://agentic-hackathon.
 
 - ✅ App chạy ổn trên Vercel. Một lượt agent mất khoảng 60–90 giây (giới hạn của Vercel là 300 giây).
 - ✅ README đầy đủ ảnh, GIF, sơ đồ. Đã có video có giọng đọc, thumbnail và 8 ảnh gallery cho Devpost.
-- ℹ️ Project **không dùng Devin**: dòng về Devin trong `SUBMISSION.md` đã bị xóa. **Còn tồn:** footer [`app/page.tsx`](app/page.tsx) vẫn ghi "with Devin" (xem mục 0).
+- ✅ **Upload CV dạng PDF/DOCX/TXT/MD** (do Devin làm, PR #1). Đọc file ngay trong trình duyệt bằng `pdfjs-dist` 6.4.299 và `mammoth` 1.13.0, giới hạn 5 MB, không lưu file lên server. Đã thử trên bản chính: PDF ghép đúng các dòng bị ngắt, DOCX tách đúng chỗ xuống dòng thủ công. **Chưa kiểm chứng:** gạch đầu dòng lồng nhau trong DOCX tạo bằng Word thật (file thử tạo bằng python-docx cho ra danh sách phẳng).
 - ⚠️ Model hay chấm không đạt ngưỡng 85 điểm và 0 câu bịa trong 3 vòng, nên agent thường dừng vì hết số vòng sửa rồi chọn bản tốt nhất. Đây là hành vi mong muốn, không phải lỗi.
 
 ## 3. Chạy lại sau khi clone
@@ -82,6 +82,7 @@ LLM_REASONING_EFFORT=minimal
 
 ```
 app/page.tsx            UI client: ô nhập liệu, trace trực tiếp, 4 tab kết quả
+app/extract-cv.ts       đọc chữ từ PDF/DOCX/TXT/MD ngay trong trình duyệt (Devin viết, PR #1)
 app/api/agent/route.ts  POST: stream NDJSON các AgentEvent · GET: thông tin provider/model
 lib/agent.ts            toàn bộ workflow của agent (runAgent)
 lib/llm.ts              client tương thích OpenAI: chọn provider, retry, sửa JSON
@@ -130,7 +131,7 @@ UI đọc stream từng dòng và cập nhật state theo.
 
 ## 9. Ý tưởng làm tiếp
 
-- Upload CV dạng PDF/DOCX (hiện chỉ nhận dán chữ hoặc file .txt/.md).
+- Đọc PDF scan bằng OCR (hiện app báo lỗi và nhắc người dùng tải PDF có chữ hoặc DOCX).
 - Theo dõi nhiều hồ sơ ứng tuyển cùng lúc.
 - Extension trình duyệt: tailor CV ngay trên trang tin tuyển dụng của LinkedIn hoặc BDJobs.
 - Thêm rate limit hoặc bắt người dùng tự nhập key trên bản public, để không đốt hết credit Meta.

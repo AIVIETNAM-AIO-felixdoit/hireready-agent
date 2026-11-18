@@ -7,7 +7,7 @@ An AI agent that tailors your CV to any job, fact-checks itself, and preps you f
 Fresh graduates and early-career developers apply to dozens of jobs with the same generic CV. Most applications are filtered out by keyword screening before a person reads them. Tailoring each CV by hand takes about an hour per job. Generic AI rewriters are fast, but they often *invent* skills and numbers, which can cost you the job at the interview.
 
 ## What it does
-You paste a job post and your CV. HireReady runs an agentic workflow and shows every step live:
+You paste a job post and your CV, or upload the CV as PDF/DOCX (text is extracted in the browser). HireReady runs an agentic workflow and shows every step live:
 
 1. **Parses** the job (must-haves, ATS keywords) and your CV into structured data.
 2. **Analyzes gaps**: gives an original match score, matched skills, missing skills with fast ways to close them, and transferable strengths you didn't highlight.
@@ -22,6 +22,7 @@ Output in English, Vietnamese or Bangla. You can copy, download or print to PDF.
 - The **agent workflow** (`lib/agent.ts`) mixes parallel steps, structured JSON outputs and a **writer ↔ critic feedback loop** with a stopping condition.
 - Agent events are **streamed** to the UI as NDJSON, so users see each step, its timing and its result as it happens.
 - **Meta Model API** (`muse-spark-1.3`) powers the agents; the client works with any OpenAI-compatible provider (OpenRouter fallback), so models can be swapped with env vars.
+- **Devin** built the **PDF/DOCX CV upload** ([PR #1](https://github.com/AIVIETNAM-AIO-felixdoit/hireready-agent/pull/1)): in-browser text extraction with pdf.js and mammoth, re-joining wrapped PDF lines, keeping DOCX bullets and line breaks, and clear errors for scanned, password-protected or oversized files. Devin Review caught two DOCX extraction bugs (dropped nested bullets, words merged at manual line breaks), and Devin fixed both in the same PR.
 
 ## Challenges
 - Stopping the model from "improving" a CV by inventing experience. We solved it with a dedicated fact-checking critic, which beats prompt instructions alone.

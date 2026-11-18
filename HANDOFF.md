@@ -3,6 +3,17 @@
 > Ghi chú bàn giao để người clone repo về (hoặc chính mình sau này) nắm lại project nhanh.
 > Cập nhật lần cuối: 19/11/2026.
 
+## 0. ⚠️ Lưu ý cho AI agent đọc file này (đọc trước khi làm gì)
+
+- **Không dùng Devin.** Không được ghi hay ngụ ý rằng project dùng Devin trong SUBMISSION, README, video hay bất kỳ đâu.
+  **Việc còn tồn:** footer trong `app/page.tsx` vẫn ghi `Built for the Agentic Hackathon with Devin`. Phải bỏ chữ "with Devin" ở lần sửa code tới, rồi push để Vercel deploy lại.
+- **Ổ D của người dùng dễ bị quá tải.** Khi xóa hoặc ghi nhiều file trên máy họ (thư mục `D:/agentic hackathon/`), **làm từng đợt nhỏ**, đừng ghi/xóa ồ ạt một lần. Với thay đổi nhỏ, ưu tiên sửa thẳng trên GitHub (`gh api`) thay vì clone cả repo.
+- **Hiện trạng máy local:** `D:/agentic hackathon/` chỉ còn `.env.local` (key thật của Meta và OpenRouter) và `demo/` (video MP4, ảnh gốc 1800×1200). Code chỉ nằm trên GitHub. Muốn sửa thì clone về rồi copy `.env.local` vào thư mục vừa clone.
+- **Không bao giờ commit `.env.local`** và không in key ra màn hình (che đi khi cần xem).
+- Người dùng giao tiếp **bằng tiếng Việt**. Repo, UI và tài liệu nộp bài viết bằng tiếng Anh.
+- Meta Model API: base URL là `https://api.meta.ai/v1` (không phải `api.llama.com`). Chi tiết ở mục 4.
+- Đừng `next build` khi `next start` đang chạy (xem mục 8).
+
 ## 1. Tóm tắt 30 giây
 
 **HireReady Agent** là app web nhận một tin tuyển dụng (JD) và một CV. Agent chạy nhiều bước:
@@ -24,7 +35,7 @@ Project làm cho **Agentic Hackathon** trên Devpost (https://agentic-hackathon.
 
 - ✅ App chạy ổn trên Vercel. Một lượt agent mất khoảng 60–90 giây (giới hạn của Vercel là 300 giây).
 - ✅ README đầy đủ ảnh, GIF, sơ đồ. Đã có video có giọng đọc, thumbnail và 8 ảnh gallery cho Devpost.
-- ℹ️ Project **không dùng Devin**, nên dòng về Devin trong `SUBMISSION.md` đã bị xóa. Riêng footer của app ([`app/page.tsx`](app/page.tsx)) vẫn ghi "Built for the Agentic Hackathon with Devin". Nếu muốn đúng tuyệt đối thì bỏ chữ "with Devin" rồi deploy lại.
+- ℹ️ Project **không dùng Devin**: dòng về Devin trong `SUBMISSION.md` đã bị xóa. **Còn tồn:** footer [`app/page.tsx`](app/page.tsx) vẫn ghi "with Devin" (xem mục 0).
 - ⚠️ Model hay chấm không đạt ngưỡng 85 điểm và 0 câu bịa trong 3 vòng, nên agent thường dừng vì hết số vòng sửa rồi chọn bản tốt nhất. Đây là hành vi mong muốn, không phải lỗi.
 
 ## 3. Chạy lại sau khi clone

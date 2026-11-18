@@ -99,35 +99,54 @@ async function extractPdf(data: ArrayBuffer): Promise<string> {
   }
 }
 
-function cellText(el: Element): string {
-  return (el.textContent || "").replace(/\s+/g, " ").trim();
+const BLOCK = /^(P|LI|H[1-6]|DIV|UL|OL|TABLE|TR|TD|TH)$/;
+
+function textOf(node: Node, sep: string): string {
+  let out = "";
+  node.childNodes.forEach((n) => {
+    if (n.nodeType === Node.TEXT_NODE) out += n.textContent || "";
+    else if (n.nodeName === "BR") out += sep;
+    else if (n.nodeType === Node.ELEMENT_NODE) {
+      const t = textOf(n, sep);
+      out += BLOCK.test(n.nodeName) ? `${sep}${t}${sep}` : t;
+    }
+  });
+  return out;
 }
 
 function htmlToLines(html: string): string {
   const body = new DOMParser().parseFromString(html, "text/html").body;
   const lines: string[] = [];
   body.querySelectorAll("p, h1, h2, h3, h4, h5, h6, li, tr").forEach((el) => {
-    const outer = el.parentElement?.closest("li, tr");
-    if (outer && !(el.tagName === "TR" && outer.tagName === "LI")) return;
+    if (el.parentElement?.closest("tr")) return;
+    if (el.tagName !== "LI" && el.tagName !== "TR" && el.parentElement?.closest("li")) return;
     if (el.tagName === "TR") {
-      const cells = Array.from(el.children).map(cellText).filter(Boolean);
+      const cells = Array.from(el.children)
+        .map((c) => textOf(c, " ").replace(/\s+/g, " ").trim())
+        .filter(Boolean);
       if (cells.length) lines.push(cells.join(" | "));
       return;
     }
     const clone = el.cloneNode(true) as HTMLElement;
     clone.querySelectorAll("ul, ol, table").forEach((n) => n.remove());
-    const text = cellText(clone);
-    if (!text) return;
+    const parts = textOf(clone, "\n")
+      .split("\n")
+      .map((l) => l.replace(/\s+/g, " ").trim())
+      .filter(Boolean);
+    if (!parts.length) return;
     if (/^H[1-6]$/.test(el.tagName) && lines.length) lines.push("");
     if (el.tagName === "LI") {
+      let depth = 0;
+      for (let a = el.parentElement?.closest("li"); a; a = a.parentElement?.closest("li")) depth++;
+      const indent = "  ".repeat(depth);
       const ol = el.parentElement?.tagName === "OL";
       const n = ol ? Array.from(el.parentElement!.children).indexOf(el) + 1 : 0;
-      lines.push(`${ol ? `${n}.` : "-"} ${text}`);
-    } else {
-      lines.push(text);
+      parts[0] = `${indent}${ol ? `${n}.` : "-"} ${parts[0]}`;
+      for (let i = 1; i < parts.length; i++) parts[i] = `${indent}  ${parts[i]}`;
     }
+    lines.push(...parts);
   });
-  return tidy(lines.join("\n"));
+  return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
 async function extractDocx(data: ArrayBuffer): Promise<string> {

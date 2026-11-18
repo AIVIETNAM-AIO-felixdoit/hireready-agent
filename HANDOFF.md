@@ -24,7 +24,7 @@ Project làm cho **Agentic Hackathon** trên Devpost (https://agentic-hackathon.
 
 - ✅ App chạy ổn trên Vercel. Một lượt agent mất khoảng 60–90 giây (giới hạn của Vercel là 300 giây).
 - ✅ README đầy đủ ảnh, GIF, sơ đồ. Đã có video có giọng đọc, thumbnail và 8 ảnh gallery cho Devpost.
-- ⚠️ Dòng nói về **Devin** trong `SUBMISSION.md` vẫn là placeholder `(fill in: ...)`. Trong quá trình làm **không dùng Devin**, nên sửa cho đúng hoặc xóa đi.
+- ℹ️ Project **không dùng Devin**, nên dòng về Devin trong `SUBMISSION.md` đã bị xóa. Riêng footer của app ([`app/page.tsx`](app/page.tsx)) vẫn ghi "Built for the Agentic Hackathon with Devin". Nếu muốn đúng tuyệt đối thì bỏ chữ "with Devin" rồi deploy lại.
 - ⚠️ Model hay chấm không đạt ngưỡng 85 điểm và 0 câu bịa trong 3 vòng, nên agent thường dừng vì hết số vòng sửa rồi chọn bản tốt nhất. Đây là hành vi mong muốn, không phải lỗi.
 
 ## 3. Chạy lại sau khi clone

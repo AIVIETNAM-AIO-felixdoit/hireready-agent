@@ -28,7 +28,6 @@ Output in English, Vietnamese or Bangla. You can copy, download or print to PDF.
 - Getting reliable structured output across different models (JSON mode + a repair fallback).
 
 ## What's next
-- PDF/DOCX CV upload
 - Track applications across many jobs
 - Browser extension: tailor straight from a LinkedIn or BDJobs job page
 
